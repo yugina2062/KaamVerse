@@ -1,0 +1,14 @@
+Applying database migrations...
+Operations to perform:
+  Apply all migrations: accounts, admin, auth, contenttypes, marketplace, sessions
+Running migrations:
+  No migrations to apply.
+Reusing the backend already running on port 8000.
+Reusing the frontend already running on port 8443.
+
+KaamVerse is running:
+  Frontend: http://localhost:8443
+  API:      http://127.0.0.1:8000/api/health/
+  Admin:    http://127.0.0.1:8000/admin/
+
+Press Ctrl+C to stop both development servers.

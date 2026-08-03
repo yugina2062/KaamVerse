@@ -1,0 +1,10 @@
+{
+  "description": "Enables users to quickly display and share content with a simple interface designed for effortless viewing and presentation.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
