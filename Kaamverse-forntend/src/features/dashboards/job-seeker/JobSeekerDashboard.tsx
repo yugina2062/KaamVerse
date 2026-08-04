@@ -3872,6 +3872,8 @@ function Settings() {
     location: "",
     jobTitle: "",
     bio: "",
+    skills: "",
+    jobTypes: "",
   })
   const tabs = [
     { id: "profile", label: "Profile" },
@@ -3886,6 +3888,10 @@ function Settings() {
     api.auth
       .me()
       .then((user) => {
+        const rawSkills = user.seeker_profile?.skills
+        const skillsStr = Array.isArray(rawSkills) ? rawSkills.join(", ") : (rawSkills || "")
+        const rawTypes = user.seeker_profile?.preferred_job_types
+        const typesStr = Array.isArray(rawTypes) ? rawTypes.join(", ") : (rawTypes || "")
         setProfile({
           firstName: user.first_name,
           lastName: user.last_name,
@@ -3894,6 +3900,8 @@ function Settings() {
           location: user.seeker_profile?.preferred_location || "",
           jobTitle: user.seeker_profile?.headline || "",
           bio: user.seeker_profile?.bio || "",
+          skills: skillsStr,
+          jobTypes: typesStr,
         })
         setAvail(
           (user.seeker_profile?.availability || {}) as Record<string, string>,
@@ -3908,6 +3916,14 @@ function Settings() {
   const saveProfile = async () => {
     setSaving(true)
     try {
+      const skillsArray = profile.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const typesArray = profile.jobTypes
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
       await api.auth.updateMe({
         first_name: profile.firstName,
         last_name: profile.lastName,
@@ -3916,11 +3932,13 @@ function Settings() {
           preferred_location: profile.location,
           headline: profile.jobTitle,
           bio: profile.bio,
+          skills: skillsArray,
+          preferred_job_types: typesArray,
         },
       })
       await dialog.alert({
         title: "Profile saved",
-        message: "Your job-seeker profile was updated in MySQL.",
+        message: "Your skills and job preferences were updated in MySQL.",
         variant: "success",
       })
     } catch (error) {
@@ -4091,6 +4109,8 @@ function Settings() {
               { label: "Email", key: "email" as const, readOnly: true },
               { label: "Location", key: "location" as const },
               { label: "Job Title", key: "jobTitle" as const },
+              { label: "Skills (comma-separated)", key: "skills" as const },
+              { label: "Preferred Job Types (e.g. part-time, freelance)", key: "jobTypes" as const },
             ].map((field) => (
               <div key={field.key}>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
