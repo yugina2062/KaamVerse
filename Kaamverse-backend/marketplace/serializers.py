@@ -5,7 +5,7 @@ from django.db.models import Count
 from accounts.models import User
 from accounts.serializers import UserSerializer
 from .models import Application, AuditLog, Booking, Conversation, FraudReport, Job, Message, Notification, NotificationBroadcast, PlatformSetting, SavedJob, SavedTalent, ServiceListing, UserAction, WorkerReview
-from .recommendations import recommendation_score
+from .recommendations import hybrid_recommendation_score
 
 
 class EmployerSummarySerializer(serializers.ModelSerializer):
@@ -49,7 +49,7 @@ class JobSerializer(serializers.ModelSerializer):
     def get_match_percentage(self, obj):
         request = self.context.get("request")
         if request and request.user.is_authenticated and request.user.role == User.Role.SEEKER:
-            return recommendation_score(request.user, obj)
+            return hybrid_recommendation_score(request.user, obj)["total"]
         return None
 
     def get_is_saved(self, obj):

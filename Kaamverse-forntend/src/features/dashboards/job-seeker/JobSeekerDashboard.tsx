@@ -553,6 +553,12 @@ const APPLICATIONS = [
   },
 ]
 
+type MatchBreakdown = {
+  total: number; content_total: number; collaborative_total: number;
+  skills: number; location: number; job_type: number;
+  schedule: number; experience: number; similar_users: number;
+  similar_user_count: number;
+}
 type UiJob = typeof REC_JOBS[number] & {
   shift?: ApiJob["shift_type"]
   salaryMin?: number
@@ -560,6 +566,7 @@ type UiJob = typeof REC_JOBS[number] & {
   verificationLevel?: number
   exactSchedule?: ExactSchedule
   applicationCount?: number
+  matchBreakdown?: MatchBreakdown | null
 }
 type UiApplication = Omit<(typeof APPLICATIONS)[number], "status"> & {
   status:
@@ -637,7 +644,10 @@ function mapJob(job: ApiJob): UiJob {
           : job.employment_type[0].toUpperCase() + job.employment_type.slice(1),
     remote: job.work_mode[0].toUpperCase() + job.work_mode.slice(1),
     trust: job.employer_details.trust_score,
-    match: job.match_percentage ?? 70,
+    match: (job as unknown as Record<string, unknown>).recommendation_breakdown
+      ? ((job as unknown as Record<string, unknown>).recommendation_breakdown as MatchBreakdown).total
+      : job.match_percentage ?? 70,
+    matchBreakdown: ((job as unknown as Record<string, unknown>).recommendation_breakdown as MatchBreakdown | undefined) ?? null,
     urgent: job.is_urgent,
     posted: new Date(job.created_at).toLocaleDateString(),
     skills: job.skills,
@@ -1115,7 +1125,7 @@ function DashboardHome({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-3 items-start">
         {jobs.map((job) => (
           <div
             key={job.id}
@@ -1207,33 +1217,46 @@ function DashboardHome({
                   <p className="text-xs font-bold text-slate-900 dark:text-white mb-2">
                     {job.match}% Match Breakdown
                   </p>
-                  {[
-                    ["Skills Match", "98%"],
-                    ["Experience Match", "94%"],
-                    ["Location Match", "100%"],
-                    ["Schedule Match", "92%"],
-                    ["Education Match", "88%"],
-                  ].map(([k, v]) => (
+                  {(job.matchBreakdown ? [
+                    ["Skills Match", job.matchBreakdown.skills, 40] as const,
+                    ["Location Match", job.matchBreakdown.location, 20] as const,
+                    ["Job Type", job.matchBreakdown.job_type, 10] as const,
+                    ["Schedule", job.matchBreakdown.schedule, 10] as const,
+                    ["Experience", job.matchBreakdown.experience, 20] as const,
+                    ["Similar Users", Math.round(job.matchBreakdown.similar_users * 0.4), 40] as const,
+                  ] : [
+                    ["Skills Match", Math.round(job.match * 0.4), 40] as const,
+                    ["Location Match", Math.round(job.match * 0.2), 20] as const,
+                    ["Job Type", Math.round(job.match * 0.1), 10] as const,
+                    ["Schedule", Math.round(job.match * 0.1), 10] as const,
+                    ["Experience", Math.round(job.match * 0.1), 20] as const,
+                    ["Similar Users", Math.round(job.match * 0.1), 40] as const,
+                  ]).map(([label, score, max]) => (
                     <div
-                      key={k}
+                      key={label}
                       className="flex justify-between items-center mb-1.5"
                     >
                       <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {k}
+                        {label}
                       </span>
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-1 bg-slate-100 dark:bg-slate-800 rounded-full">
                           <div
                             className="h-1 rounded-full bg-green-500"
-                            style={{ width: v }}
+                            style={{ width: `${max > 0 ? Math.round((score / max) * 100) : 0}%` }}
                           />
                         </div>
                         <span className="text-xs font-semibold text-green-600">
-                          {v}
+                          {score}/{max}
                         </span>
                       </div>
                     </div>
                   ))}
+                  {job.matchBreakdown && job.matchBreakdown.similar_user_count > 0 && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                      🤝 {job.matchBreakdown.similar_user_count} professional{job.matchBreakdown.similar_user_count === 1 ? "" : "s"} with similar interests also engaged with this role
+                    </p>
+                  )}
                 </div>
               )}
 

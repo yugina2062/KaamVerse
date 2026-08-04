@@ -1,13 +1,84 @@
-[03/Aug/2026 21:26:35] "GET /api/health/ HTTP/1.1" 200 41
-[03/Aug/2026 21:26:48] "OPTIONS /api/jobs/ HTTP/1.1" 200 0
-[03/Aug/2026 21:26:48] "OPTIONS /api/public-stats/ HTTP/1.1" 200 0
-[03/Aug/2026 21:26:48] "OPTIONS /api/jobs/ HTTP/1.1" 200 0
-[03/Aug/2026 21:26:48] "OPTIONS /api/public-stats/ HTTP/1.1" 200 0
-[03/Aug/2026 21:26:48] "GET /api/public-stats/ HTTP/1.1" 200 78
-[03/Aug/2026 21:26:48] "GET /api/public-stats/ HTTP/1.1" 200 78
-[03/Aug/2026 21:26:48] "GET /api/jobs/ HTTP/1.1" 200 2594
-[03/Aug/2026 21:26:48] "GET /api/jobs/ HTTP/1.1" 200 2594
-[03/Aug/2026 21:31:54] "GET /api/public-stats/ HTTP/1.1" 200 78
-[03/Aug/2026 21:31:54] "GET /api/jobs/ HTTP/1.1" 200 2594
-[03/Aug/2026 21:31:54] "GET /api/public-stats/ HTTP/1.1" 200 78
-[03/Aug/2026 21:31:54] "GET /api/jobs/ HTTP/1.1" 200 2594
+[04/Aug/2026 20:48:18] "GET /api/health/ HTTP/1.1" 200 41
+Unauthorized: /api/notifications/
+WARNING 2026-08-04 20:48:21,602 django.request Unauthorized: /api/notifications/
+[04/Aug/2026 20:48:21] "GET /api/notifications/ HTTP/1.1" 401 92
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:48:22,312 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:22] "GET /api/dashboard/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:22] "GET /api/public-stats/ HTTP/1.1" 200 78
+[04/Aug/2026 20:48:22] "GET /api/jobs/ HTTP/1.1" 200 2594
+[04/Aug/2026 20:48:22] "GET /api/jobs/ HTTP/1.1" 200 2594
+[04/Aug/2026 20:48:22] "GET /api/public-stats/ HTTP/1.1" 200 78
+Unauthorized: /api/auth/me/
+WARNING 2026-08-04 20:48:31,036 django.request Unauthorized: /api/auth/me/
+[04/Aug/2026 20:48:31] "PATCH /api/auth/me/ HTTP/1.1" 401 92
+Unauthorized: /api/notifications/
+WARNING 2026-08-04 20:48:31,042 django.request Unauthorized: /api/notifications/
+[04/Aug/2026 20:48:31] "GET /api/notifications/ HTTP/1.1" 401 92
+Unauthorized: /api/auth/me/
+WARNING 2026-08-04 20:48:31,344 django.request Unauthorized: /api/auth/me/
+Unauthorized: /api/recommendations/
+Unauthorized: /api/applications/
+WARNING 2026-08-04 20:48:31,347 django.request Unauthorized: /api/recommendations/
+WARNING 2026-08-04 20:48:31,348 django.request Unauthorized: /api/applications/
+[04/Aug/2026 20:48:31] "GET /api/auth/me/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:31] "GET /api/recommendations/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:31] "GET /api/applications/ HTTP/1.1" 401 92
+Unauthorized: /api/auth/me/
+WARNING 2026-08-04 20:48:31,395 django.request Unauthorized: /api/auth/me/
+Unauthorized: /api/recommendations/
+WARNING 2026-08-04 20:48:31,399 django.request Unauthorized: /api/recommendations/
+[04/Aug/2026 20:48:31] "GET /api/auth/me/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:31] "GET /api/recommendations/ HTTP/1.1" 401 92
+Unauthorized: /api/saved-jobs/
+WARNING 2026-08-04 20:48:31,406 django.request Unauthorized: /api/saved-jobs/
+Unauthorized: /api/applications/
+WARNING 2026-08-04 20:48:31,408 django.request Unauthorized: /api/applications/
+Unauthorized: /api/auth/me/
+[04/Aug/2026 20:48:31] "GET /api/public-stats/ HTTP/1.1" 200 78
+Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:31] "GET /api/saved-jobs/ HTTP/1.1" 401 92
+WARNING 2026-08-04 20:48:31,413 django.request Unauthorized: /api/auth/me/
+Unauthorized: /api/saved-jobs/
+[04/Aug/2026 20:48:31] "GET /api/applications/ HTTP/1.1" 401 92
+WARNING 2026-08-04 20:48:31,413 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:31] "GET /api/auth/me/ HTTP/1.1" 401 92
+WARNING 2026-08-04 20:48:31,418 django.request Unauthorized: /api/saved-jobs/
+[04/Aug/2026 20:48:31] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/auth/me/
+[04/Aug/2026 20:48:31] "GET /api/saved-jobs/ HTTP/1.1" 401 92
+WARNING 2026-08-04 20:48:31,430 django.request Unauthorized: /api/auth/me/
+Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:31] "GET /api/public-stats/ HTTP/1.1" 200 78
+WARNING 2026-08-04 20:48:31,432 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:31] "GET /api/auth/me/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:31] "GET /api/dashboard/ HTTP/1.1" 401 92
+[04/Aug/2026 20:48:31] "GET /api/jobs/ HTTP/1.1" 200 2594
+[04/Aug/2026 20:48:31] "GET /api/jobs/ HTTP/1.1" 200 2594
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:48:41,389 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:41] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:48:51,561 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:48:51] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/notifications/
+WARNING 2026-08-04 20:49:01,557 django.request Unauthorized: /api/notifications/
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:49:01,558 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:49:01] "GET /api/notifications/ HTTP/1.1" 401 92
+[04/Aug/2026 20:49:01] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:49:11,559 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:49:11] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/dashboard/
+WARNING 2026-08-04 20:49:21,560 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:49:21] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/notifications/
+WARNING 2026-08-04 20:49:31,581 django.request Unauthorized: /api/notifications/
+Unauthorized: /api/dashboard/
+[04/Aug/2026 20:49:31] "GET /api/notifications/ HTTP/1.1" 401 92
+WARNING 2026-08-04 20:49:31,581 django.request Unauthorized: /api/dashboard/
+[04/Aug/2026 20:49:31] "GET /api/dashboard/ HTTP/1.1" 401 92
+Unauthorized: /api/notifications/
+WARNING 2026-08-04 20:50:01,553 django.request Unauthorized: /api/notifications/
+[04/Aug/2026 20:50:01] "GET /api/notifications/ HTTP/1.1" 401 92

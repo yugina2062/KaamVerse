@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from accounts.models import EmployerProfile, User
 from .models import Application, AuditLog, Booking, Conversation, FraudReport, Job, Message, Notification, NotificationBroadcast, PlatformSetting, SavedJob, SavedTalent, ServiceListing, UserAction, UserInteraction, WorkerReview
 from .permissions import IsAdministrator, IsEmployer, IsSeeker
-from .recommendations import recommendation_score
+from .recommendations import hybrid_recommendation_score, recommendation_score
 from .serializers import (
     ApplicationSerializer,
     ApplicationStatusSerializer,
@@ -193,9 +193,18 @@ class RecommendationView(APIView):
             .select_related("employer", "employer__employer_profile")
             .annotate(application_count=Count("applications", distinct=True))
         )
-        jobs.sort(key=lambda job: (recommendation_score(request.user, job), job.created_at), reverse=True)
-        serializer = JobSerializer(jobs[:20], many=True, context={"request": request})
-        return Response(serializer.data)
+        scored = []
+        for job in jobs:
+            breakdown = hybrid_recommendation_score(request.user, job)
+            scored.append((breakdown["total"], job, breakdown))
+        scored.sort(key=lambda item: (item[0], item[1].created_at), reverse=True)
+
+        results = []
+        for total, job, breakdown in scored[:20]:
+            data = JobSerializer(job, context={"request": request}).data
+            data["recommendation_breakdown"] = breakdown
+            results.append(data)
+        return Response(results)
 
 
 class ApplicationViewSet(viewsets.ModelViewSet):

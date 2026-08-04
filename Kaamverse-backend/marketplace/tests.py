@@ -50,7 +50,9 @@ class MarketplaceFlowTests(APITestCase):
         recommendations = self.client.get(reverse("recommendations"))
         self.assertEqual(recommendations.status_code, status.HTTP_200_OK)
         self.assertEqual(recommendations.data[0]["id"], self.job.id)
-        self.assertGreaterEqual(recommendations.data[0]["match_percentage"], 90)
+        self.assertGreaterEqual(recommendations.data[0]["match_percentage"], 40)
+        self.assertIn("recommendation_breakdown", recommendations.data[0])
+        self.assertIn("similar_users", recommendations.data[0]["recommendation_breakdown"])
 
         application = self.client.post(
             reverse("application-list"), {"job_id": self.job.id, "cover_letter": "I am interested."}, format="json"
