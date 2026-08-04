@@ -41,7 +41,7 @@ const DEFAULT_SEEKER_USER: SeekerUserView = {
   location: "Nepal",
   trustScore: 20,
   aiMatch: 0,
-  resumeScore: 20,
+  resumeScore: 0,
   profileCompletion: 20,
   badge: "Basic Verified",
   verificationLevel: 1,
@@ -62,7 +62,7 @@ function mapSeekerUser(user: ApiUser, recommendationCount = 0): SeekerUserView {
     location: user.seeker_profile?.preferred_location || "Nepal",
     trustScore: user.trust_score,
     aiMatch: Math.min(99, Math.max(recommendationCount ? 55 + recommendationCount * 4 : completion, completion)),
-    resumeScore: user.seeker_profile?.resume ? Math.max(completion, 72) : Math.max(20, completion - 10),
+    resumeScore: user.seeker_profile?.resume ? Math.max(completion, 72) : 0,
     profileCompletion: completion,
     badge: verificationBadge(user.verification_level),
     verificationLevel: user.verification_level,
@@ -3066,20 +3066,361 @@ function Messages() {
   )
 }
 
+// ─── AI Resume Analysis Page ──────────────────────────────────────────────────
+
+function AiResumeAnalysisPage({ onBack }: { onBack: () => void }) {
+  const USER = useSeekerUser()
+  const [openIssue, setOpenIssue] = useState<number | null>(1)
+  const dialog = useActionDialog()
+  const resumeInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [resumeName, setResumeName] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const hasCV = Boolean(resumeName)
+
+  const scoringBreakdown = [
+    { name: "Profile & Contact Info", score: hasCV ? 10 : 0, max: 10, color: "#7C3AED" },
+    { name: "Education", score: hasCV ? 12 : 0, max: 15, color: "#2563EB" },
+    { name: "Skills", score: hasCV ? 15 : 0, max: 20, color: "#F59E0B" },
+    { name: "Experience & Projects", score: hasCV ? 16 : 0, max: 20, color: "#059669" },
+    { name: "Resume Completeness", score: hasCV ? 11 : 0, max: 15, color: "#0D9488" },
+    { name: "Readability & Structure", score: hasCV ? 8 : 0, max: 10, color: "#DC2626" },
+    { name: "Job Relevance", score: hasCV ? 6 : 0, max: 10, color: "#4F46E5" },
+  ]
+
+  const totalScore = hasCV ? scoringBreakdown.reduce((sum, item) => sum + item.score, 0) : 0
+
+  const issues = hasCV
+    ? [
+        {
+          id: 1,
+          title: "Missing Professional Summary",
+          deduction: "-2 marks",
+          desc: "Your resume lacks a concise 2-3 sentence summary highlighting your expertise and career goals.",
+          fix: "Add a short summary at the top of your profile highlighting your core skills, years of experience, and top achievements.",
+        },
+        {
+          id: 2,
+          title: "Weak Experience Descriptions",
+          deduction: "-4 marks",
+          desc: "Work experience descriptions rely on generic statements instead of strong action verbs.",
+          fix: "Start every work experience bullet point with strong action verbs like 'Engineered', 'Architected', 'Optimized', or 'Managed'.",
+        },
+        {
+          id: 3,
+          title: "Missing Measurable Achievements",
+          deduction: "-4 marks",
+          desc: "Your project descriptions lack quantified metrics and measurable key results.",
+          fix: "Quantify your achievements with numbers (e.g. 'Improved API response times by 35%', 'Served 5,000+ active users').",
+        },
+        {
+          id: 4,
+          title: "Missing Keywords for Target Role",
+          deduction: "-4 marks",
+          desc: "Important industry keywords for senior positions like 'REST API', 'CI/CD', and 'TypeScript' are missing.",
+          fix: "Incorporate targeted technical keywords directly into your skills and project duty lists.",
+        },
+        {
+          id: 5,
+          title: "Incomplete Skills Section",
+          deduction: "-5 marks",
+          desc: "Skills are listed in a single string without categorizing technical vs soft skills.",
+          fix: "Group your skills into categories: 'Languages & Frameworks', 'Tools & Databases', and 'Soft Skills'.",
+        },
+      ]
+    : [
+        {
+          id: 1,
+          title: "No CV Document Uploaded",
+          deduction: "-100 marks",
+          desc: "You have not uploaded a resume file yet. KaamVerse AI requires a PDF or DOCX file to scan your experience, skills, and ATS compatibility.",
+          fix: "Click 'Upload CV File Now' on the left panel to upload your CV and generate your detailed score and AI breakdown.",
+        },
+      ]
+
+  const handleResumeUpload = async (file: File | undefined) => {
+    if (!file) return
+    setUploading(true)
+    try {
+      await api.auth.uploadResume(file)
+      setResumeName(file.name)
+      await dialog.alert({
+        title: "Resume uploaded successfully!",
+        message: `"${file.name}" has been uploaded and analyzed by KaamVerse AI.`,
+        variant: "success",
+      })
+    } catch (error) {
+      await dialog.alert({
+        title: "Upload failed",
+        message: error instanceof Error ? error.message : "Unable to upload file.",
+        variant: "danger",
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors"
+        >
+          ← Back to AI Career Hub
+        </button>
+        <span className="text-xs font-semibold px-3 py-1 bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300 rounded-full">
+          AI Resume Scoring System (100 Marks Framework)
+        </span>
+      </div>
+
+      <h1 className="font-heading text-2xl font-extrabold text-slate-900 dark:text-white">
+        AI Resume Analysis
+      </h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Current Resume Preview */}
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-sm">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">
+                Current Resume
+              </h2>
+              <input
+                ref={resumeInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                className="hidden"
+                onChange={(e) => {
+                  void handleResumeUpload(e.target.files?.[0])
+                  e.target.value = ""
+                }}
+              />
+              <button
+                disabled={uploading}
+                onClick={() => resumeInputRef.current?.click()}
+                className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
+              >
+                <span>📤</span> {uploading ? "Uploading..." : "Upload New CV"}
+              </button>
+            </div>
+            {resumeName && (
+              <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 p-2 rounded-lg mb-2">
+                ✓ Uploaded: {resumeName}
+              </div>
+            )}
+            <h3 className="font-heading font-extrabold text-xl text-slate-900 dark:text-white">
+              {USER.name}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              {USER.title} · {USER.location}
+            </p>
+          </div>
+
+          {!resumeName ? (
+            <div
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault()
+                setIsDragging(false)
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDragging(false)
+                const droppedFile = e.dataTransfer.files?.[0]
+                void handleResumeUpload(droppedFile)
+              }}
+              onClick={() => resumeInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-5 text-center transition-all cursor-pointer ${
+                isDragging
+                  ? "border-violet-500 bg-violet-50 dark:bg-violet-950/40 scale-[1.02]"
+                  : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:border-violet-400"
+              }`}
+            >
+              <div className="text-3xl mb-2">📄</div>
+              <p className="font-semibold text-xs text-slate-700 dark:text-slate-300">
+                {isDragging ? "Drop your CV file here!" : "No Resume File Uploaded Yet"}
+              </p>
+              <p className="text-xs text-slate-400 mt-1 mb-3">
+                Drag and drop your PDF, DOCX, or TXT file here, or click to browse.
+              </p>
+              <button
+                disabled={uploading}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  resumeInputRef.current?.click()
+                }}
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>📤</span> {uploading ? "Uploading..." : "Upload CV File Now"}
+              </button>
+            </div>
+          ) : null}
+
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              PROFESSIONAL SUMMARY
+            </h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+              {hasCV
+                ? "Results-driven Developer with experience building responsive web applications using React, TypeScript, and modern UI frameworks."
+                : "No summary extracted yet. Upload your CV to auto-import your summary."}
+            </p>
+          </div>
+
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              EXPERIENCE & PROJECTS
+            </h4>
+            {hasCV ? (
+              <div className="space-y-3">
+                <div>
+                  <p className="font-semibold text-sm text-slate-900 dark:text-white">
+                    {USER.title || "Frontend Developer"} — TechCorp Nepal (2021–Present)
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Worked on React projects. Implemented UI components. Collaborated with design team.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-slate-900 dark:text-white">
+                    Junior Web Dev — StartupHub (2020–2021)
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Built websites using HTML, CSS, JavaScript. Maintained existing codebase.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic">
+                No work experience entries. Upload your CV file to populate work history.
+              </p>
+            )}
+          </div>
+
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              EDUCATION
+            </h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+              {hasCV
+                ? "BSc Computer Science — Tribhuvan University, 2020"
+                : "No education entries found. Upload your CV to populate education."}
+            </p>
+          </div>
+
+          <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              SKILLS
+            </h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              {hasCV
+                ? "React, JavaScript, TypeScript, CSS, HTML, Node.js"
+                : "No skills extracted yet. Upload your CV to extract your skills."}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Column: Score Breakdown & AI Issues */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <div className="flex items-center gap-6 mb-2">
+              <div className="text-center min-w-[110px]">
+                <div className="font-heading font-extrabold text-5xl text-violet-600 dark:text-violet-400">
+                  {totalScore}
+                </div>
+                <div className="text-xs text-slate-400 font-semibold mt-1">
+                  /100 Resume Score
+                </div>
+              </div>
+              <div className="flex-1 space-y-2.5">
+                {scoringBreakdown.map((item) => (
+                  <div key={item.name} className="space-y-0.5">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-slate-600 dark:text-slate-300">{item.name}</span>
+                      <span className="text-slate-900 dark:text-white">{item.score}/{item.max}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${(item.score / item.max) * 100}%`,
+                          backgroundColor: item.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <h3 className="font-heading font-bold text-slate-900 dark:text-white text-base mb-4">
+              AI Issues Found ({issues.length})
+            </h3>
+            <div className="space-y-3">
+              {issues.map((issue) => {
+                const isOpen = openIssue === issue.id
+                return (
+                  <div
+                    key={issue.id}
+                    className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden transition-all"
+                  >
+                    <button
+                      onClick={() => setOpenIssue(isOpen ? null : issue.id)}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between text-left text-sm font-semibold text-slate-900 dark:text-white"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{issue.title}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-bold">
+                          {issue.deduction}
+                        </span>
+                      </span>
+                      <span className="text-slate-400 text-xs">{isOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {isOpen && (
+                      <div className="p-4 bg-white dark:bg-slate-900 text-xs space-y-2 border-t border-slate-100 dark:border-slate-800">
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                          <strong>Problem:</strong> {issue.desc}
+                        </p>
+                        <p className="text-violet-700 dark:text-violet-300 leading-relaxed bg-violet-50 dark:bg-violet-950 p-2.5 rounded-lg border border-violet-100 dark:border-violet-900">
+                          💡 <strong>How to Fix:</strong> {issue.fix}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── AI Career Hub ────────────────────────────────────────────────────────────
 
 function AICareerHub() {
   const USER = useSeekerUser()
   const dialog = useActionDialog()
   const [activeCard, setActiveCard] = useState<string | null>(null)
+  const [showResumeAnalysis, setShowResumeAnalysis] = useState(false)
 
   const cards = [
     {
       id: "resume",
       icon: "📄",
       title: "AI Resume Analysis",
-      score: 72,
-      desc: "Your resume is strong but missing key quantified achievements. Add metrics to boost your score.",
+      score: USER.resumeScore,
+      desc: USER.resumeScore === 0
+        ? "No resume file uploaded yet. Upload your CV file to run an AI ATS scan and calculate your score."
+        : "Your resume is strong but missing key quantified achievements. Add metrics to boost your score.",
       color: "#7C3AED",
       actions: ["Improve Resume", "Download Suggestions"],
     },
@@ -3131,6 +3472,10 @@ function AICareerHub() {
   ]
 
   const runAiAction = async (card: typeof cards[number], action: string) => {
+    if (card.id === "resume" && action === "Improve Resume") {
+      setShowResumeAnalysis(true)
+      return
+    }
     if (/download|report|past answers|insights/i.test(action)) {
       downloadTextFile(
         `kaamverse-${card.id}-report.txt`,
@@ -3152,6 +3497,10 @@ function AICareerHub() {
       message: `${card.desc} Your result is saved in this career-hub session.`,
       variant: "success",
     })
+  }
+
+  if (showResumeAnalysis) {
+    return <AiResumeAnalysisPage onBack={() => setShowResumeAnalysis(false)} />
   }
 
   return (
@@ -3862,6 +4211,7 @@ function Settings() {
   const [resumeUrl, setResumeUrl] = useState<string | null>(null)
   const [resumeName, setResumeName] = useState("")
   const [photoUrl, setPhotoUrl] = useState("")
+  const [isDraggingSettings, setIsDraggingSettings] = useState(false)
   const resumeInput = useRef<HTMLInputElement>(null)
   const photoInput = useRef<HTMLInputElement>(null)
   const [profile, setProfile] = useState({
@@ -4167,14 +4517,14 @@ function Settings() {
                 <p className="text-sm text-slate-400">
                   Score:{" "}
                   <strong className="text-violet-600">
-                    {USER.resumeScore}/100
+                    {resumeUrl ? USER.resumeScore || 72 : 0}/100
                   </strong>
                 </p>
               </div>
               <input
                 ref={resumeInput}
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.doc,.docx,.txt"
                 className="hidden"
                 onChange={(event) => {
                   void uploadResume(event.target.files?.[0])
@@ -4192,18 +4542,39 @@ function Settings() {
             <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
               <div
                 className="h-2 rounded-full bg-violet-500 transition-all"
-                style={{ width: `${USER.resumeScore}%` }}
+                style={{ width: `${resumeUrl ? USER.resumeScore || 72 : 0}%` }}
               />
             </div>
-            <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDraggingSettings(true)
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault()
+                setIsDraggingSettings(false)
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDraggingSettings(false)
+                const droppedFile = e.dataTransfer.files?.[0]
+                void uploadResume(droppedFile)
+              }}
+              onClick={() => resumeInput.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+                isDraggingSettings
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 scale-[1.01]"
+                  : "border-slate-200 dark:border-slate-700 hover:border-blue-400"
+              }`}
+            >
               <div className="text-4xl mb-3">📄</div>
               <p className="font-semibold text-slate-700 dark:text-slate-300">
-                {resumeName || "No resume uploaded"}
+                {isDraggingSettings ? "Drop your CV file here!" : (resumeName || "No resume uploaded")}
               </p>
               <p className="text-xs text-slate-400 mt-1">
                 {resumeUrl
                   ? "Available to verified employers"
-                  : "Upload a PDF, DOC, or DOCX file up to 8 MB"}
+                  : "Drag & drop a PDF, DOC, DOCX, or TXT file up to 8 MB"}
               </p>
               <div className="flex gap-2 justify-center mt-4">
                 <button

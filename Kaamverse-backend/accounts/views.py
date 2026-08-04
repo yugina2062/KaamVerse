@@ -367,8 +367,8 @@ class ResumeView(generics.GenericAPIView):
         if not resume:
             return Response({"detail": "Choose a resume file to upload."}, status=400)
         extension = resume.name.rsplit(".", 1)[-1].lower() if "." in resume.name else ""
-        if extension not in {"pdf", "doc", "docx"}:
-            return Response({"detail": "Upload a PDF, DOC, or DOCX resume."}, status=400)
+        if extension not in {"pdf", "doc", "docx", "txt"}:
+            return Response({"detail": "Upload a PDF, DOC, DOCX, or TXT resume."}, status=400)
         if resume.size > 8 * 1024 * 1024:
             return Response({"detail": "The resume must be 8 MB or smaller."}, status=400)
         profile = request.user.seeker_profile
