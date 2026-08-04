@@ -1,0 +1,53 @@
+================================================================================
+                               AARAV SHARMA
+                     Frontend Developer | Kathmandu, Nepal
+            Phone: +977-9800000002 | Email: seeker@kaamverse.local
+================================================================================
+
+PROFESSIONAL SUMMARY
+--------------------------------------------------------------------------------
+Dedicated Frontend Developer with 2+ years of hands-on experience building modern, 
+responsive web applications using React, TypeScript, JavaScript, and Figma. 
+Proven track record of optimizing page load speeds, implementing pixel-perfect UI 
+components, and collaborating effectively in part-time and freelance environments.
+
+CONTACT & LOCATION
+--------------------------------------------------------------------------------
+• Location: Kathmandu, Nepal
+• Phone: +977-9800000002
+• Email: seeker@kaamverse.local
+• Preferred Work Model: Part-Time, Freelance
+
+TECHNICAL SKILLS
+--------------------------------------------------------------------------------
+• Core Web: React.js, JavaScript (ES6+), TypeScript, HTML5, CSS3
+• Design & UI: Figma (UI/UX Prototyping), TailwindCSS, Responsive Web Design
+• Tools & Methodologies: Git, GitHub, RESTful APIs, JSON, Agile/Scrum
+
+PROFESSIONAL EXPERIENCE & PROJECTS
+--------------------------------------------------------------------------------
+Frontend Developer (Freelance / Part-Time)
+WebTech Solutions | Kathmandu, Nepal                       Jan 2023 – Present
+• Designed and engineered responsive single-page web applications using 
+  React and TypeScript, reducing page load latency by 35%.
+• Translated high-fidelity Figma UI/UX designs into reusable frontend 
+  component libraries.
+• Integrated backend REST APIs to deliver dynamic user dashboards for 2,000+ 
+  active monthly users.
+
+Web Application Developer (Independent & Academic Projects)  May 2022 – Dec 2022
+• Built an interactive job marketplace platform with real-time category 
+  filtering, user authentication, and profile tracking.
+• Implemented client-side performance optimizations achieving a 95+ score 
+  on Google Lighthouse.
+
+EDUCATION
+--------------------------------------------------------------------------------
+Bachelor of Science in Computer Science & Information Technology (BSc CSIT)
+Tribhuvan University, Kathmandu, Nepal                       2020 – 2024
+
+CERTIFICATIONS & LANGUAGES
+--------------------------------------------------------------------------------
+• Meta Frontend Developer Professional Certificate (Coursera)
+• Languages: English (Fluent), Nepali (Native)
+================================================================================
