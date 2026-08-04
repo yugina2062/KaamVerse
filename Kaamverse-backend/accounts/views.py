@@ -377,7 +377,13 @@ class ResumeView(generics.GenericAPIView):
         profile.resume = resume
         profile.profile_completion = max(profile.profile_completion, 70)
         profile.save(update_fields=("resume", "profile_completion"))
-        return Response(UserSerializer(request.user, context={"request": request}).data)
+        
+        from accounts.resume_parser import analyze_resume_file
+        analysis = analyze_resume_file(profile.resume, profile)
+
+        data = UserSerializer(request.user, context={"request": request}).data
+        data["resume_analysis"] = analysis
+        return Response(data)
 
     def delete(self, request):
         if request.user.role != User.Role.SEEKER or not hasattr(request.user, "seeker_profile"):

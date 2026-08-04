@@ -3076,60 +3076,81 @@ function AiResumeAnalysisPage({ onBack }: { onBack: () => void }) {
   const [uploading, setUploading] = useState(false)
   const [resumeName, setResumeName] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [dynamicAnalysis, setDynamicAnalysis] = useState<{
+    total_score: number
+    breakdown: Array<{ name: string; score: number; max: number; color: string }>
+    issues: Array<{ id: number; title: string; deduction: string; desc: string; fix: string }>
+  } | null>(null)
 
   const hasCV = Boolean(resumeName)
 
-  const scoringBreakdown = [
-    { name: "Profile & Contact Info", score: hasCV ? 10 : 0, max: 10, color: "#7C3AED" },
-    { name: "Education", score: hasCV ? 12 : 0, max: 15, color: "#2563EB" },
-    { name: "Skills", score: hasCV ? 15 : 0, max: 20, color: "#F59E0B" },
-    { name: "Experience & Projects", score: hasCV ? 16 : 0, max: 20, color: "#059669" },
-    { name: "Resume Completeness", score: hasCV ? 11 : 0, max: 15, color: "#0D9488" },
-    { name: "Readability & Structure", score: hasCV ? 8 : 0, max: 10, color: "#DC2626" },
-    { name: "Job Relevance", score: hasCV ? 6 : 0, max: 10, color: "#4F46E5" },
+  const scoringBreakdown = !hasCV
+    ? [
+        { category: "Profile & Contact Info", score: 0, max: 10, color: "#7C3AED" },
+        { category: "Education", score: 0, max: 15, color: "#2563EB" },
+        { category: "Skills", score: 0, max: 20, color: "#F59E0B" },
+        { category: "Experience & Projects", score: 0, max: 20, color: "#059669" },
+        { category: "Resume Completeness", score: 0, max: 15, color: "#0D9488" },
+        { category: "Readability & Structure", score: 0, max: 10, color: "#DC2626" },
+        { category: "Job Relevance", score: 0, max: 10, color: "#4F46E5" },
+      ]
+    : dynamicAnalysis
+    ? dynamicAnalysis.breakdown.map((item) => ({
+        category: item.name,
+        score: item.score,
+        max: item.max,
+        color: item.color,
+      }))
+    : [
+        { category: "Profile & Contact Info", score: 10, max: 10, color: "#7C3AED" },
+        { category: "Education", score: 12, max: 15, color: "#2563EB" },
+        { category: "Skills", score: 15, max: 20, color: "#F59E0B" },
+        { category: "Experience & Projects", score: 16, max: 20, color: "#059669" },
+        { category: "Resume Completeness", score: 11, max: 15, color: "#0D9488" },
+        { category: "Readability & Structure", score: 8, max: 10, color: "#DC2626" },
+        { category: "Job Relevance", score: 6, max: 10, color: "#4F46E5" },
+      ]
+
+  const defaultIssues = [
+    {
+      id: 1,
+      title: "Missing Professional Summary",
+      deduction: "-2 marks",
+      desc: "Your resume lacks a concise 2-3 sentence summary highlighting your expertise and career goals.",
+      fix: "Add a short summary at the top of your profile highlighting your core skills, years of experience, and top achievements.",
+    },
+    {
+      id: 2,
+      title: "Weak Experience Descriptions",
+      deduction: "-4 marks",
+      desc: "Experience descriptions use passive language rather than strong action verbs.",
+      fix: "Start experience bullet points with strong verbs like 'Engineered', 'Architected', 'Optimized', or 'Integrated'.",
+    },
+    {
+      id: 3,
+      title: "Missing Measurable Achievements",
+      deduction: "-4 marks",
+      desc: "Project duties do not mention specific performance metrics or percentage outcomes.",
+      fix: "Include quantified results (e.g. 'Improved page speed by 35%', 'Served 2,000+ active users').",
+    },
+    {
+      id: 4,
+      title: "Missing Keywords for Target Role",
+      deduction: "-4 marks",
+      desc: "Your resume lacks key technical terms expected for modern Frontend Developer roles.",
+      fix: "Incorporate keywords like React, TypeScript, State Management, and REST API integration.",
+    },
+    {
+      id: 5,
+      title: "Incomplete Skills Section",
+      deduction: "-5 marks",
+      desc: "Skills are listed in a single string without categorizing technical vs soft skills.",
+      fix: "Group your skills into categories: 'Languages & Frameworks', 'Tools & Databases', and 'Soft Skills'.",
+    },
   ]
 
-  const totalScore = hasCV ? scoringBreakdown.reduce((sum, item) => sum + item.score, 0) : 0
-
-  const issues = hasCV
+  const issues = !hasCV
     ? [
-        {
-          id: 1,
-          title: "Missing Professional Summary",
-          deduction: "-2 marks",
-          desc: "Your resume lacks a concise 2-3 sentence summary highlighting your expertise and career goals.",
-          fix: "Add a short summary at the top of your profile highlighting your core skills, years of experience, and top achievements.",
-        },
-        {
-          id: 2,
-          title: "Weak Experience Descriptions",
-          deduction: "-4 marks",
-          desc: "Work experience descriptions rely on generic statements instead of strong action verbs.",
-          fix: "Start every work experience bullet point with strong action verbs like 'Engineered', 'Architected', 'Optimized', or 'Managed'.",
-        },
-        {
-          id: 3,
-          title: "Missing Measurable Achievements",
-          deduction: "-4 marks",
-          desc: "Your project descriptions lack quantified metrics and measurable key results.",
-          fix: "Quantify your achievements with numbers (e.g. 'Improved API response times by 35%', 'Served 5,000+ active users').",
-        },
-        {
-          id: 4,
-          title: "Missing Keywords for Target Role",
-          deduction: "-4 marks",
-          desc: "Important industry keywords for senior positions like 'REST API', 'CI/CD', and 'TypeScript' are missing.",
-          fix: "Incorporate targeted technical keywords directly into your skills and project duty lists.",
-        },
-        {
-          id: 5,
-          title: "Incomplete Skills Section",
-          deduction: "-5 marks",
-          desc: "Skills are listed in a single string without categorizing technical vs soft skills.",
-          fix: "Group your skills into categories: 'Languages & Frameworks', 'Tools & Databases', and 'Soft Skills'.",
-        },
-      ]
-    : [
         {
           id: 1,
           title: "No CV Document Uploaded",
@@ -3138,16 +3159,28 @@ function AiResumeAnalysisPage({ onBack }: { onBack: () => void }) {
           fix: "Click 'Upload CV File Now' on the left panel to upload your CV and generate your detailed score and AI breakdown.",
         },
       ]
+    : dynamicAnalysis && dynamicAnalysis.issues.length > 0
+    ? dynamicAnalysis.issues
+    : defaultIssues
+
+  const totalScore = !hasCV
+    ? 0
+    : dynamicAnalysis
+    ? dynamicAnalysis.total_score
+    : scoringBreakdown.reduce((sum, item) => sum + item.score, 0)
 
   const handleResumeUpload = async (file: File | undefined) => {
     if (!file) return
     setUploading(true)
     try {
-      await api.auth.uploadResume(file)
+      const res = await api.auth.uploadResume(file)
       setResumeName(file.name)
+      if (res && (res as any).resume_analysis) {
+        setDynamicAnalysis((res as any).resume_analysis)
+      }
       await dialog.alert({
-        title: "Resume uploaded successfully!",
-        message: `"${file.name}" has been uploaded and analyzed by KaamVerse AI.`,
+        title: "Resume uploaded & analyzed!",
+        message: `"${file.name}" has been processed by KaamVerse AI parser.`,
         variant: "success",
       })
     } catch (error) {
@@ -3339,9 +3372,9 @@ function AiResumeAnalysisPage({ onBack }: { onBack: () => void }) {
               </div>
               <div className="flex-1 space-y-2.5">
                 {scoringBreakdown.map((item) => (
-                  <div key={item.name} className="space-y-0.5">
+                  <div key={item.category} className="space-y-0.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-600 dark:text-slate-300">{item.name}</span>
+                      <span className="text-slate-600 dark:text-slate-300">{item.category}</span>
                       <span className="text-slate-900 dark:text-white">{item.score}/{item.max}</span>
                     </div>
                     <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
